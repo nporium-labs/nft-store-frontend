@@ -28,25 +28,25 @@ const Footer = () => {
       <CustomContainer>
         <Box display='flex' alignItems='center' justifyContent='space-between' flexWrap='wrap' className={classes.linksSection}>
           <Box display='flex' flexWrap='wrap'>
-            <Link href='/' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/explore')}>
+            <Link href='/explore' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/explore')}>
               Explore
             </Link>
-            <Link href='/' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/collections')}>
+            <Link href='/collections' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/collections')}>
               Collections
             </Link>
-            <Link href='/' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/creators')}>
+            <Link href='/creators' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/creators')}>
               Creators
             </Link>
             <Link href='/' className={classes.link} underline='none'>
               About
             </Link>
-            <Link href='/' className={classes.link} underline='none'>
+            <Link href='/account' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/account')}>
               My Account
             </Link>
-            <Link href='/' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/blog')}>
+            <Link href='/blog' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/blog')}>
               Blog
             </Link>
-            <Link href='/' className={classes.link} underline='none'>
+            <Link href='/contact' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/contact')}>
               Contact
             </Link>
           </Box>

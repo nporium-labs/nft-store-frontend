@@ -24,6 +24,18 @@ const sidebarStyles = (() => ({
       height: '50px',    
     }   
   },
+  profieBtn: {
+    '&.MuiButton-root': {
+      color: '#777684 !important',
+      borderColor: '#EBEAEF !important'
+    },
+    '& img': {
+      position: 'absolute',
+      left: '5px',
+      top: '50%',
+      transform: 'translateY(-50%)'
+    }
+  }
 }))
 
 export default sidebarStyles

@@ -91,6 +91,19 @@ const navbarStyles = ((theme) => ({
     [theme.breakpoints.down('md')]: {
       display: 'none'
     }
+  },
+  profieBtn: {
+    '&.MuiButton-root': {
+      paddingLeft: '35px !important',
+      color: '#777684 !important',
+      borderColor: '#EBEAEF !important'
+    },
+    '& img': {
+      position: 'absolute',
+      left: '5px',
+      top: '50%',
+      transform: 'translateY(-50%)'
+    }
   }
 }))
 

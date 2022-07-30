@@ -1,4 +1,6 @@
-import React from 'react'
+import React, { useContext } from 'react'
+import clsx from 'clsx'
+import { useNavigate } from 'react-router-dom'
 import { makeStyles } from "@mui/styles";
 
 import CloseIcon from '@mui/icons-material/Close';
@@ -9,6 +11,8 @@ import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link'
 import Button from '@mui/material/Button';
 
+import { AppContext } from 'context/AppContextProvider'
+
 import styles from 'assets/jss/components/sidebarStyles'
 
 const useStyles = makeStyles(styles)
@@ -17,7 +21,15 @@ const Sidebar = (props) => {
 
   const { open, handleClose } = props
 
+  const { logged } = useContext(AppContext)
+
   const classes = useStyles()
+  const navigate = useNavigate()
+  
+  const handleNavigate = (e, url) => {
+    e.preventDefault();
+    navigate(url)
+  }
 
   return (
     <Drawer
@@ -38,21 +50,33 @@ const Sidebar = (props) => {
           </IconButton>
         </Box>
         <Box display='block' p={2}>
-          <Link href='/' className={classes.link} underline='none'>
+          <Link href='/' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/explore')}>
             Explore
           </Link>
-          <Link href='/' className={classes.link} underline='none'>
+          <Link href='/' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/collections')}>
             Collections
           </Link>
-          <Link href='/' className={classes.link} underline='none'>
+          <Link href='/' className={classes.link} underline='none' onClick={(e) => handleNavigate(e, '/creators')}>
             Creators
           </Link>
           <Link href='/' className={classes.link} underline='none'>
             About
           </Link>
-          <Button variant='outlined' className={classes.loginBtn}>
-            Login/Register
-          </Button>
+          {
+            !logged && (
+              <Button variant='outlined' className={classes.loginBtn} onClick={(e) => handleNavigate(e, '/login')}>
+                Login/Register
+              </Button>
+            )
+          }
+          {
+            logged && (
+              <Button variant='outlined' className={clsx(classes.loginBtn, classes.profieBtn)} onClick={(e) => handleNavigate(e, '/profile')}>
+                <img src="/images/profile-avatar.png" alt="" />
+                johndoe99
+              </Button>
+            )
+          }
         </Box>
       </Box>
     </Drawer>

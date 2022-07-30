@@ -1,4 +1,4 @@
-const blogStyles = ((theme) => ({
+const blogDetailStyles = ((theme) => ({
   header: {
     padding: '150px 0 236px',
     backgroundColor: 'rgba(102, 128, 255, 0.1)',
@@ -16,19 +16,26 @@ const blogStyles = ((theme) => ({
       fontWeight: '100',
       marginBottom: '36px',
       position: 'relative',
+      width: 'fit-content',
       '&::before': {
         content: `''`,
         position: 'absolute',
-        width: '150px',
+        width: '310px',
         height: '50px',
         backgroundColor: 'rgba(102, 128, 255, 0.5)',
-        left: '65px',
+        right: '-100px',
         bottom: '-6px',
         zIndex: '-1'
       }
     },
     [theme.breakpoints.down('md')]: {
-      width: '100%'
+      width: '100%',
+      '& h3': {       
+        '&::before': {
+          width: '200px !important',          
+          right: '0px !important',
+        }
+      }
     },
     [theme.breakpoints.down('sm')]: {
       paddingTop: '100px',
@@ -42,63 +49,45 @@ const blogStyles = ((theme) => ({
         '&::before': {
           width: '100px !important',
           height: '30px !important',
-          left: '30px !important'
+          right: '00px !important'
         }
       }
     }
   },
   contents: {
     paddingBottom: '120px',
-    marginTop: '-194px',
+    marginTop: '-120px',
     [theme.breakpoints.down('sm')]: {
-      marginTop: '-130px',
+      marginTop: '-80px',
       paddingBottom: '80px'
     }
-  }, 
-  blogImg: {
-    width: '50%',
-    [theme.breakpoints.down('md')]: {
-      width: '100%'
+  },
+  imgBox: {
+    width: '75vw',
+    maxWidth: '1440px',
+    height: '500px',
+    [theme.breakpoints.down('md')]: {    
+      width: 'calc(100% - 48px)',
+    },
+    [theme.breakpoints.down('sm')]: {
+      height: '250px',
+      width: 'calc(100% - 32px)'
     }
   },
-  blogContent: {
-    width: '50%',
-    padding: '0 40px 0 60px',
-    boxSizing: 'border-box',   
-    '& h6': {
-      fontSize: '32px',
-      lineHeight: '1.2',
-      fontWeight: '700',
-      marginBottom: '12px',     
+  textBox: {
+    padding: '120px 0',
+    [theme.breakpoints.up('lg')]: {
+      maxWidth: '1080px !important'
     },
-    '& .MuiButton-root': {
-      marginTop: '56px'
-    },
-    [theme.breakpoints.down('md')]: {
-      width: '100%',
-      marginTop: '50px',
-      padding: '0'
-    },
-    [theme.breakpoints.down('sm')]: {        
-      '& h6': {
-        fontSize: '24px',     
-      },  
-      '& .MuiButton-root': {
-        marginTop: '30px'
-      },
+    [theme.breakpoints.down('sm')]: {
+      padding: '80px 0'
     }
   },
-  comingMark: {
-    lineHeight: '1',
-    fontWeight: 'bold',
-    backgroundColor: '#55DB2E',
-    color: 'white !important',
-    padding: "6px 22px",
-    position: 'absolute',
-    top: '30px',
-    right: '-5px',
-    width: 'fit-content'
-  },
+  relatedPosts: {
+    backgroundColor: 'rgba(102, 128, 255, 0.1)',
+    padding: '120px 0',
+    marginBottom: '120px'
+  }
 }))
 
-export default blogStyles
+export default blogDetailStyles

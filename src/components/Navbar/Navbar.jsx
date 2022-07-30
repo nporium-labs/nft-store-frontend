@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import clsx from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import { makeStyles } from "@mui/styles";
@@ -14,6 +14,8 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 
 import CustomContainer from 'components/CustomContainer'
 
+import { AppContext } from 'context/AppContextProvider'
+
 import styles from 'assets/jss/components/navbarStyles'
 
 const useStyles = makeStyles(styles)
@@ -26,6 +28,8 @@ const Navbar = (props) => {
 
   const navigate = useNavigate()
 
+  const { logged } = useContext(AppContext)
+
   const handleNavigate = (e, url) => {
     e.preventDefault();
     navigate(url)
@@ -35,13 +39,13 @@ const Navbar = (props) => {
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static" className={classes.appbar}>
         <CustomContainer>
-          <Toolbar className={classes.toolbar}>            
-            <Link variant='button' className={classes.logo} onClick={(e) => handleNavigate(e, '/')} sx={{cursor: 'pointer'}}>
+          <Toolbar className={classes.toolbar}>
+            <Link variant='button' className={classes.logo} onClick={(e) => handleNavigate(e, '/')} sx={{ cursor: 'pointer' }}>
               <img src="/images/npm-logo.png" alt="Logo" />
             </Link>
 
             <Box className={clsx(classes.searchInput, classes.hiddenOnMobile)} ml='auto'>
-              <OutlinedInput 
+              <OutlinedInput
                 startAdornment={<img src='/images/loupe.png' alt="" />}
                 placeholder='Search'
               />
@@ -60,9 +64,21 @@ const Navbar = (props) => {
               <Link href='/' className={classes.link} underline='none'>
                 About
               </Link>
-              <Button variant='outlined' className={classes.loginBtn}>
-                Login/Register
-              </Button>
+              {
+                !logged && (
+                  <Button variant='outlined' className={classes.loginBtn} onClick={(e) => handleNavigate(e, '/login')}>
+                    Login/Register
+                  </Button>
+                )
+              }
+              {
+                logged && (
+                  <Button variant='outlined' className={clsx(classes.loginBtn, classes.profieBtn)} onClick={(e) => handleNavigate(e, '/profile')}>
+                    <img src="/images/profile-avatar.png" alt="" />
+                    johndoe99
+                  </Button>
+                )
+              }
             </Box>
 
             <IconButton
