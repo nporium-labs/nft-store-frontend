@@ -52,6 +52,7 @@ const FilterBoxWallet = (props) => {
             key={option}
           >
             <Typography
+              className="selectOption"
               variant="body1"
               color="#777684"
               sx={{ lineHeight: "1" }}
