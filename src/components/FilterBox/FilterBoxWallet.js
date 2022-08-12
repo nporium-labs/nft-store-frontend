@@ -8,8 +8,8 @@ import Typography from "@mui/material/Typography";
 import Collapse from "@mui/material/Collapse";
 import Checkbox from "@mui/material/Checkbox";
 
-const FilterBox = (props) => {
-  const { title, options, count } = props;
+const FilterBoxWallet = (props) => {
+  const { title, options, count, handler } = props;
 
   const [open, setOpen] = useState(false);
 
@@ -55,10 +55,10 @@ const FilterBox = (props) => {
               variant="body1"
               color="#777684"
               sx={{ lineHeight: "1" }}
+              onClick={handler}
             >
               {option}
             </Typography>
-            <Checkbox />
           </Box>
         ))}
       </Collapse>
@@ -66,4 +66,4 @@ const FilterBox = (props) => {
   );
 };
 
-export default FilterBox;
+export default FilterBoxWallet;
