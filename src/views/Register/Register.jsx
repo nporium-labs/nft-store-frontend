@@ -2,9 +2,10 @@ import React, { useContext, useState } from "react";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "@mui/styles";
-import { GoogleLogin } from "react-google-login";
+import { GoogleLogin } from "@react-oauth/google";
 import { AppContext } from "context/AppContextProvider";
 import { toast } from "react-toastify";
+import jwt_decode from "jwt-decode";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -18,6 +19,7 @@ import CustomContainer from "components/CustomContainer";
 import CustomButton from "components/CustomButton";
 import StyledBox from "components/StyledBox";
 import TextField from "components/CustomInput/TextField";
+import { Button } from "@mui/material";
 import { registerUser, loginWithGoogle } from "services";
 
 import styles from "assets/jss/views/authStyles";
@@ -167,22 +169,28 @@ const Register = () => {
   };
 
   const onSuccess = async (res) => {
+    setLoading(true);
+    var token = jwt_decode(res.credential);
     const result = await loginWithGoogle(
-      res.profileObj.email,
-      res.profileObj.givenName,
-      res.profileObj.familyName,
-      res.profileObj.imageUrl,
-      res.profileObj.googleId
+      token.sub,
+      token.name,
+      token.givenName,
+      token.family_name,
+      token.picture,
+      token.email,
+      token.email_verified,
+      token.locale
     );
-
     if (result && result.loginResult.isError === false) {
       localStorage.setItem("token", result.loginResult.token);
       localStorage.setItem("name", result.loginResult.userName);
       localStorage.setItem("email", result.loginResult.email);
       localStorage.setItem("google", true);
-      handleLogin();
+      localStorage.setItem("checked", false);
+      handleLogin(result.loginResult.userName);
       notify(result.loginResult.message);
       navigate("/");
+      setLoading(false);
     }
   };
 
@@ -223,19 +231,23 @@ const Register = () => {
         <CustomContainer>
           <Box className={classes.form} mx="auto">
             <Box>
-              <CustomButton fullWidth>
-                <div id="signInButton">
-                  <GoogleLogin
-                    className="customGoogle"
-                    clientId={clientId}
-                    buttonText="Sign up in with Google"
-                    onSuccess={onSuccess}
-                    onFailure={onFailure}
-                    cookiePolicy={"single_host_origin"}
-                    isSignedIn={true}
-                  />
-                </div>
-              </CustomButton>
+              <div className="googlebtn">
+                <GoogleLogin
+                  context={"signin"}
+                  render={(renderProps) => (
+                    <Button
+                      fullWidth
+                      className="w-100 googlebtn-inner"
+                      onClick={renderProps.onClick}
+                      disabled={renderProps.disabled}
+                    >
+                      Sign up with google
+                    </Button>
+                  )}
+                  onSuccess={onSuccess}
+                  onFailure={onFailure}
+                />
+              </div>
             </Box>
             <Box
               my={4}

@@ -2,7 +2,6 @@ import React, { useContext, useState } from "react";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "@mui/styles";
-import { GoogleLogin } from "react-google-login";
 import { toast } from "react-toastify";
 import jwt_decode from "jwt-decode";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -19,9 +18,11 @@ import StyledBox from "components/StyledBox";
 import TextField from "components/CustomInput/TextField";
 
 import { AppContext } from "context/AppContextProvider";
+import { GoogleLogin } from "@react-oauth/google";
 
 import styles from "assets/jss/views/authStyles";
 import { loginWithGoogle, login } from "services";
+import { Button } from "@mui/material";
 
 const useStyles = makeStyles(styles);
 
@@ -45,12 +46,10 @@ const Login = () => {
 
   const { handleLogin } = useContext(AppContext);
 
-  const clientId =
-    "655028439560-rqh779jka3tg38gcbb4862pobvo0gmg5.apps.googleusercontent.com";
-
   const onSuccess = async (res) => {
     setLoading(true);
-    var token = jwt_decode(res.tokenId);
+    console.log(res);
+    var token = jwt_decode(res.credential);
     const result = await loginWithGoogle(
       token.sub,
       token.name,
@@ -182,19 +181,23 @@ const Login = () => {
         <CustomContainer>
           <Box className={classes.form} mx="auto">
             <Box>
-              <CustomButton fullWidth>
-                <div id="signInButton">
-                  <GoogleLogin
-                    className="customGoogle"
-                    clientId={clientId}
-                    buttonText="Log in with Google"
-                    onSuccess={onSuccess}
-                    onFailure={onFailure}
-                    cookiePolicy={"single_host_origin"}
-                    isSignedIn={true}
-                  />
-                </div>
-              </CustomButton>
+              <div className="googlebtn">
+                <GoogleLogin
+                  context={"signin"}
+                  render={(renderProps) => (
+                    <Button
+                      fullWidth
+                      className="w-100 googlebtn-inner"
+                      onClick={renderProps.onClick}
+                      disabled={renderProps.disabled}
+                    >
+                      Sign in with google
+                    </Button>
+                  )}
+                  onSuccess={onSuccess}
+                  onFailure={onFailure}
+                />
+              </div>
             </Box>
             <Box
               my={4}

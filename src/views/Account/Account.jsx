@@ -10,7 +10,8 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
-import { GoogleLogout } from "react-google-login";
+// import { GoogleLogout } from "react-google-login";
+import { googleLogout } from "@react-oauth/google";
 
 import CustomContainer from "components/CustomContainer";
 import CustomButton from "components/CustomButton";
@@ -33,7 +34,7 @@ const Account = () => {
   const [userEmail, setUserEmail] = useState();
   const [userName, setUserName] = useState();
   const [googleUser, setGoogleUser] = useState();
-  const [googleLogout, setGoogleLogout] = useState();
+  const [isgoogleLogout, setIsGoogleLogout] = useState();
   const [checkBox, setCheckBox] = useState();
   let [loading, setLoading] = useState();
   useEffect(() => {
@@ -42,10 +43,10 @@ const Account = () => {
     var googleLogin = localStorage.getItem("google");
     if (localStorage.getItem("google")) {
       setGoogleUser(false);
-      setGoogleLogout(true);
+      setIsGoogleLogout(true);
     } else {
       setGoogleUser(true);
-      setGoogleLogout(false);
+      setIsGoogleLogout(false);
     }
 
     setCheckBox(localStorage.getItem("checked"));
@@ -58,7 +59,7 @@ const Account = () => {
     setLoading(true);
     let data = userEmail;
     let checked = JSON.parse(checkBox);
-    window.localStorage.clear();
+    // window.localStorage.clear();
     if (checked) {
       localStorage.setItem("email", data);
     }
@@ -72,9 +73,11 @@ const Account = () => {
     let data = userEmail;
     let checked = JSON.parse(checkBox);
     window.localStorage.clear();
+    googleLogout();
     if (checkBox) {
       localStorage.setItem("email", data);
     }
+
     handleLogout();
     setLoading(false);
     notify("you are logout successfully");
@@ -151,12 +154,12 @@ const Account = () => {
             >
               Earnings
             </Button>
-            {googleUser && (
+            {isgoogleLogout && (
               <Button variant="text" onClick={logoutHadler}>
                 Log out
               </Button>
             )}
-            {googleLogout && (
+            {/* {googleLogout && (
               <Button variant="text">
                 <div id="signOutButton">
                   <GoogleLogout
@@ -167,7 +170,7 @@ const Account = () => {
                   />
                 </div>
               </Button>
-            )}
+            )} */}
           </Box>
           {loading && (
             <Backdrop

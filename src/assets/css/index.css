@@ -63,3 +63,11 @@ li {
 p.selectOption {
   cursor: pointer !important;
 }
+
+.googlebtn {
+  display: flex;
+  justify-content: center;
+}
+button.googlebtn-inner {
+  padding: 20px 20px !important;
+}
