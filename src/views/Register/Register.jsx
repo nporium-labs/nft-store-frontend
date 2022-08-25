@@ -1,11 +1,15 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
+import axios from "axios";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "@mui/styles";
-import { GoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin } from "@react-oauth/google";
 import { AppContext } from "context/AppContextProvider";
 import { toast } from "react-toastify";
-import jwt_decode from "jwt-decode";
+import { Formik } from "formik";
+import * as yup from "yup";
+import { useFormik } from "formik";
+import { Button } from "@mui/material";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -19,7 +23,6 @@ import CustomContainer from "components/CustomContainer";
 import CustomButton from "components/CustomButton";
 import StyledBox from "components/StyledBox";
 import TextField from "components/CustomInput/TextField";
-import { Button } from "@mui/material";
 import { registerUser, loginWithGoogle } from "services";
 
 import styles from "assets/jss/views/authStyles";
@@ -30,173 +33,155 @@ const Register = () => {
   const classes = useStyles();
 
   const navigate = useNavigate();
-  const { handleLogin } = useContext(AppContext);
-
-  const [email, setEmail] = useState();
-  const [pasword, setPasword] = useState();
-  const [repasword, setRepasword] = useState();
-  const [firstName, setfirstName] = useState();
-  const [lastName, setlastName] = useState();
-  const [imageUrl, setImageUrl] = useState();
-  const [policyCheckbox, setPolicyCheckbox] = useState();
-  const [newsletterCheckbox, setNewsletterCheckbox] = useState();
-  const [emailError, setEmailError] = useState();
-  const [passwrodError, setPasswrodError] = useState();
-  const [nameError, setNameError] = useState();
+  const { handleLogin, logged, userName } = useContext(AppContext);
+  const [paswordShow, setPaswordShow] = useState(false);
+  const [rePaswordShow, setRePaswordShow] = useState(false);
+  const [responseError, setResponseError] = useState();
   let [loading, setLoading] = useState();
 
-  const clientId =
-    "655028439560-rqh779jka3tg38gcbb4862pobvo0gmg5.apps.googleusercontent.com";
+  useEffect(() => {
+    if (logged && userName !== null) {
+      navigate("/");
+    }
+  }, [logged, userName]);
 
-  const isValidEmail = (email) => {
-    return /\S+@\S+\.\S+/.test(email);
-  };
-  const isValidPassword = (password) => {
-    if (password.length > 5 && password.length < 20) {
-      return true;
-    } else {
-      return false;
-    }
-  };
-  const isValidName = (name) => {
-    if (name.length > 5 && name.length < 20) {
-      return true;
-    } else {
-      return false;
-    }
-  };
-  const nameHanlder = (event) => {
-    event.preventDefault();
-    if (!isValidName(event.target.value)) {
-      setNameError("please provide minimum 6 letters");
-    } else {
-      setNameError(null);
-    }
-    setfirstName(event.target.value);
-    setlastName("");
-  };
-  const emailHanlder = (event) => {
-    event.preventDefault();
-    if (!isValidEmail(event.target.value)) {
-      setEmailError("Email is not valid");
-    } else {
-      setEmailError(null);
-    }
-    setEmail(event.target.value);
-    setImageUrl("");
-  };
+  const validationSchemaForm = yup.object({
+    name: yup
+      .string()
+      .required("name is required")
+      .min(3, "A minimum of 3 characters is required."),
+    email: yup
+      .string()
+      .email("Please enter a valid email address.")
+      .required("email is required"),
+    password: yup
+      .string()
+      .required("password is required")
+      .min(8, "Your password length must be greater than or equal to 8")
+      .matches(
+        /[a-z]+/,
+        "Your password must contain one or more lowercase characters."
+      )
+      .matches(
+        /[A-Z]+/,
+        "Your password must contain one or more uppercase characters."
+      )
+      .matches(
+        /[@$!%*#?&]+/,
+        "The password must contain one or more special characters."
+      )
+      .matches(/\d+/, "Your password must contain one or more numeric values."),
+    repassword: yup
+      .string()
+      .oneOf([yup.ref("password"), null], "passwords must match")
+      .required("Password confirm is required"),
+    terms: yup.bool().oneOf([true], "The terms & conditions are required"),
+    newsletter: yup.string(),
+  });
 
-  const passwordHanlder = (event) => {
-    event.preventDefault();
-    if (!isValidPassword(event.target.value)) {
-      setPasswrodError(
-        "please provide minimum 6 letters and password should match with re-password"
-      );
-    } else {
-      setPasswrodError(null);
-    }
-    setPasword(event.target.value);
-  };
-
-  const rePasswordHanlder = (event) => {
-    event.preventDefault();
-    if (
-      !isValidPassword(event.target.value) ||
-      event.target.value !== pasword
-    ) {
-      setPasswrodError(
-        "please provide minimum 6 letters and password should match with re-password"
-      );
-    } else {
-      setPasswrodError(null);
-    }
-    setRepasword(event.target.value);
-  };
-
-  const handlePolicyCheckBox = (e) => {
-    const { value, checked } = e.target;
-
-    if (checked) {
-      setPolicyCheckbox(true);
-    } else {
-      setPolicyCheckbox(false);
-    }
-  };
-  const handleNewsLetterCheckBox = (e) => {
-    const { value, checked } = e.target;
-
-    if (checked) {
-      setNewsletterCheckbox(true);
-    } else {
-      setNewsletterCheckbox(false);
-    }
-  };
-  const signupHandler = async (event) => {
-    event.preventDefault();
-    if (
-      email &&
-      firstName &&
-      pasword &&
-      repasword &&
-      email.length !== 0 &&
-      pasword.length !== 0 &&
-      repasword.length !== 0 &&
-      pasword.toLowerCase() === repasword.toLowerCase() &&
-      isValidName(firstName) &&
-      isValidPassword(pasword) &&
-      isValidEmail(email) &&
-      policyCheckbox
-    ) {
-      setLoading(true);
-      const result = await registerUser(
-        email,
-        firstName,
-        lastName,
-        imageUrl,
-        pasword
-      );
-      if (result && result.isError === false) {
-        notify(result.message);
-        setLoading(false);
-        navigate("/login");
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      email: "",
+      password: "",
+      repassword: "",
+      terms: false,
+      newsletter: false,
+    },
+    validationSchema: validationSchemaForm,
+    onSubmit: async (values) => {
+      if (
+        values.email &&
+        values.name &&
+        values.password &&
+        values.repassword &&
+        values.email.length !== 0 &&
+        values.password.length !== 0 &&
+        values.repassword.length !== 0 &&
+        values.password.toLowerCase() === values.repassword.toLowerCase()
+      ) {
+        setLoading(true);
+        let lastName = "";
+        let imageUrl = "";
+        const result = await registerUser(
+          values.email,
+          values.name,
+          lastName,
+          imageUrl,
+          values.password
+        );
+        if (result && result.isError === false) {
+          notify(result.message);
+          setLoading(false);
+          navigate("/login");
+        } else {
+          setResponseError(
+            "The account you are trying to register with already exists, please login."
+          );
+          setLoading(false);
+        }
       } else {
-        notify("User already exist exist");
+        setResponseError(
+          "The account you are trying to register with already exists, please login."
+        );
         setLoading(false);
       }
+      setLoading(false);
+    },
+  });
+
+  const showPasswordHandler = (event) => {
+    event.preventDefault();
+    if (paswordShow) {
+      setPaswordShow(false);
     } else {
-      setLoading(false);
+      setPaswordShow(true);
+    }
+  };
+  const showRePasswordHandler = (event) => {
+    event.preventDefault();
+    if (rePaswordShow) {
+      setRePaswordShow(false);
+    } else {
+      setRePaswordShow(true);
     }
   };
 
-  const onSuccess = async (res) => {
-    setLoading(true);
-    var token = jwt_decode(res.credential);
-    const result = await loginWithGoogle(
-      token.sub,
-      token.name,
-      token.givenName,
-      token.family_name,
-      token.picture,
-      token.email,
-      token.email_verified,
-      token.locale
-    );
-    if (result && result.loginResult.isError === false) {
-      localStorage.setItem("token", result.loginResult.token);
-      localStorage.setItem("name", result.loginResult.userName);
-      localStorage.setItem("email", result.loginResult.email);
-      localStorage.setItem("google", true);
-      localStorage.setItem("checked", false);
-      handleLogin(result.loginResult.userName);
-      notify(result.loginResult.message);
-      navigate("/");
-      setLoading(false);
-    }
-  };
-
-  const onFailure = (res) => {
-    // console.log("fail to login", res);
-  };
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (codeResponse) => {
+      const userInfo = await axios
+        .get("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${codeResponse.access_token}` },
+        })
+        .then((res) => res.data);
+      setLoading(true);
+      const result = await loginWithGoogle(
+        userInfo.sub,
+        userInfo.name,
+        userInfo.given_name,
+        userInfo.family_name,
+        userInfo.picture,
+        userInfo.email,
+        userInfo.email_verified,
+        userInfo.locale
+      );
+      if (result && result.loginResult.isError === false) {
+        localStorage.setItem("token", result.loginResult.token);
+        localStorage.setItem("name", result.loginResult.userName);
+        localStorage.setItem("email", result.loginResult.email);
+        localStorage.setItem("google", true);
+        localStorage.setItem("checked", false);
+        handleLogin(result.loginResult.userName);
+        notify(result.loginResult.message);
+        navigate("/");
+        setLoading(false);
+      }
+    },
+    onFailure: async (codeResponse) => {
+      notify("We are facing issue while login through google");
+    },
+    flow: "implicit",
+  });
 
   const notify = (message) => toast(message);
   return (
@@ -231,23 +216,10 @@ const Register = () => {
         <CustomContainer>
           <Box className={classes.form} mx="auto">
             <Box>
-              <div className="googlebtn">
-                <GoogleLogin
-                  context={"signin"}
-                  render={(renderProps) => (
-                    <Button
-                      fullWidth
-                      className="w-100 googlebtn-inner"
-                      onClick={renderProps.onClick}
-                      disabled={renderProps.disabled}
-                    >
-                      Sign up with google
-                    </Button>
-                  )}
-                  onSuccess={onSuccess}
-                  onFailure={onFailure}
-                />
-              </div>
+              <CustomButton fullWidth onClick={googleLogin}>
+                <img src="/images/icons/google.png" alt="" />
+                &nbsp; Sign up with Google
+              </CustomButton>
             </Box>
             <Box
               my={4}
@@ -260,90 +232,148 @@ const Register = () => {
                 or Sign up with Email
               </Typography>
             </Box>
-
-            <Box sx={{ marginBottom: "30px" }}>
-              <TextField
-                label="Name"
-                placeholder="John Doe"
-                onChange={nameHanlder}
-              />
-              <p className="error-msg">{nameError}</p>
-            </Box>
-            <Box sx={{ marginBottom: "30px" }}>
-              <TextField
-                label="Email"
-                placeholder="E.g. johndoe@email.com"
-                onChange={emailHanlder}
-              />
-              <p className="error-msg">{emailError}</p>
-            </Box>
-            <Box sx={{ marginBottom: "30px" }}>
-              <TextField
-                label="Password"
-                placeholder="Set your password"
-                type="password"
-                onChange={passwordHanlder}
-                endAdornment={
-                  <InputAdornment position="end">
-                    <img
-                      src="/images/icons/iconmonstr-eye-off-lined.png"
-                      alt=""
-                    />
-                  </InputAdornment>
-                }
-              />
-              <p className="error-msg">{passwrodError}</p>
-            </Box>
-            <Box sx={{ marginBottom: "30px" }}>
-              <TextField
-                label="Repeat Password"
-                placeholder="Repeat your password"
-                type="password"
-                onChange={rePasswordHanlder}
-                endAdornment={
-                  <InputAdornment position="end">
-                    <img
-                      src="/images/icons/iconmonstr-eye-off-lined.png"
-                      alt=""
-                    />
-                  </InputAdornment>
-                }
-              />
-              <p className="error-msg">{passwrodError}</p>
-            </Box>
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-              mb={5}
-              flexWrap="wrap"
-            >
-              <Box display="flex" alignItems="center">
-                <Checkbox onChange={handlePolicyCheckBox} />
-                <Typography variant="body1" color="#777684">
-                  I’ve read and accept the &nbsp;
-                  <Link href="/" sx={{ color: "#777684" }}>
-                    terms & conditions
-                  </Link>
-                </Typography>
+            <form onSubmit={formik.handleSubmit}>
+              <Box sx={{ marginBottom: "30px" }}>
+                <TextField
+                  id="name"
+                  type="text"
+                  label="Name"
+                  placeholder="John Doe"
+                  onChange={formik.handleChange}
+                  value={formik.values.name}
+                  error={formik.touched.name && Boolean(formik.errors.name)}
+                  helpertext={formik.touched.name && formik.errors.name}
+                />
+                <p className="error-msg">
+                  {formik.touched.name && formik.errors.name}
+                </p>
               </Box>
-              <Box display="flex" alignItems="center">
-                <Checkbox onChange={handleNewsLetterCheckBox} />
-                <Typography variant="body1" color="#777684">
-                  Subscribe to our newsletter to stay in the loop
-                </Typography>
+              <Box sx={{ marginBottom: "30px" }}>
+                <TextField
+                  id="email"
+                  label="Email"
+                  placeholder="E.g. johndoe@email.com"
+                  onChange={formik.handleChange}
+                  value={formik.values.email}
+                  error={formik.touched.email && Boolean(formik.errors.email)}
+                  helpertext={formik.touched.email && formik.errors.email}
+                />
+                <p className="error-msg">
+                  {formik.touched.email && formik.errors.email}
+                </p>
               </Box>
-            </Box>
-
-            <Box mb={5}>
-              <CustomButton
-                fullWidth
-                className={classes.signupBtn}
-                onClick={signupHandler}
+              <Box sx={{ marginBottom: "30px" }}>
+                <TextField
+                  id="password"
+                  label="Password"
+                  placeholder="Set your password"
+                  type={!paswordShow ? "password" : "text"}
+                  onChange={formik.handleChange}
+                  value={formik.values.password}
+                  error={
+                    formik.touched.password && Boolean(formik.errors.password)
+                  }
+                  helpertext={formik.touched.password && formik.errors.password}
+                  endAdornment={
+                    <Button onClick={showPasswordHandler}>
+                      <InputAdornment position="end">
+                        <img
+                          src="/images/icons/iconmonstr-eye-off-lined.png"
+                          alt=""
+                        />
+                      </InputAdornment>
+                    </Button>
+                  }
+                />
+                <p className="error-msg">
+                  {formik.touched.password && formik.errors.password}
+                </p>
+              </Box>
+              <Box sx={{ marginBottom: "30px" }}>
+                <TextField
+                  id="repassword"
+                  label="Repeat Password"
+                  placeholder="Repeat your password"
+                  type={!rePaswordShow ? "password" : "text"}
+                  onChange={formik.handleChange}
+                  value={formik.values.repassword}
+                  error={
+                    formik.touched.repassword &&
+                    Boolean(formik.errors.repassword)
+                  }
+                  helpertext={
+                    formik.touched.repassword && formik.errors.repassword
+                  }
+                  endAdornment={
+                    <Button onClick={showRePasswordHandler}>
+                      <InputAdornment position="end">
+                        <img
+                          src="/images/icons/iconmonstr-eye-off-lined.png"
+                          alt=""
+                        />
+                      </InputAdornment>
+                    </Button>
+                  }
+                />
+                <p className="error-msg">
+                  {formik.touched.repassword && formik.errors.repassword}
+                </p>
+              </Box>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                mb={5}
+                flexWrap="wrap"
               >
-                Register
-              </CustomButton>
-            </Box>
+                <Box display="flex" alignItems="center">
+                  <Checkbox
+                    id="terms"
+                    name="terms"
+                    onChange={formik.handleChange}
+                    value={formik.values.terms}
+                    error={
+                      formik.touched.terms &&
+                      JSON.stringify(Boolean(formik.errors.terms))
+                    }
+                    helpertext={formik.touched.terms && formik.errors.terms}
+                  />
+                  <Typography variant="body1" color="#777684">
+                    I’ve read and accept the &nbsp;
+                    <Link href="/" sx={{ color: "#777684" }}>
+                      terms & conditions
+                    </Link>
+                  </Typography>
+
+                  {formik.touched.terms && (
+                    <p className="error-msg">{formik.errors.terms} </p>
+                  )}
+                </Box>
+                <Box display="flex" alignItems="center">
+                  <Checkbox
+                    id="newsletter"
+                    onChange={formik.handleChange}
+                    value={formik.values.newsletter}
+                    error={
+                      formik.touched.newsletter &&
+                      JSON.stringify(Boolean(formik.errors.newsletter))
+                    }
+                    helpertext={
+                      formik.touched.newsletter && formik.errors.newsletter
+                    }
+                  />
+                  <Typography variant="body1" color="#777684">
+                    Subscribe to our newsletter to stay in the loop
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box mb={5}>
+                <CustomButton fullWidth className={classes.signupBtn}>
+                  Register
+                </CustomButton>
+              </Box>
+            </form>
             {loading && (
               <Backdrop
                 sx={{

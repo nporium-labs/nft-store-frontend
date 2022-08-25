@@ -28,56 +28,25 @@ const Account = () => {
   const classes = useStyles();
   const navigate = useNavigate();
 
-  const { handleLogout } = useContext(AppContext);
+  const { handleLogout, logged } = useContext(AppContext);
+
   var googletest = true;
   const [tab, setTab] = useState("profile");
   const [userEmail, setUserEmail] = useState();
   const [userName, setUserName] = useState();
   const [googleUser, setGoogleUser] = useState();
   const [isgoogleLogout, setIsGoogleLogout] = useState();
-  const [checkBox, setCheckBox] = useState();
   let [loading, setLoading] = useState();
   useEffect(() => {
-    setUserEmail(localStorage.getItem("email"));
-    setUserName(localStorage.getItem("name"));
-    var googleLogin = localStorage.getItem("google");
-    if (localStorage.getItem("google")) {
-      setGoogleUser(false);
-      setIsGoogleLogout(true);
-    } else {
-      setGoogleUser(true);
-      setIsGoogleLogout(false);
+    if (!logged) {
+      navigate("/login");
     }
+  }, [logged]);
 
-    setCheckBox(localStorage.getItem("checked"));
-  });
-
-  const clientId =
-    "655028439560-rqh779jka3tg38gcbb4862pobvo0gmg5.apps.googleusercontent.com";
-
-  const onSuccessLogout = () => {
-    setLoading(true);
-    let data = userEmail;
-    let checked = JSON.parse(checkBox);
-    // window.localStorage.clear();
-    if (checked) {
-      localStorage.setItem("email", data);
-    }
-    handleLogout();
-    setLoading(false);
-    notify("you are logout successfully");
-    navigate("/login");
-  };
   const logoutHadler = () => {
     setLoading(true);
-    let data = userEmail;
-    let checked = JSON.parse(checkBox);
     window.localStorage.clear();
     googleLogout();
-    if (checkBox) {
-      localStorage.setItem("email", data);
-    }
-
     handleLogout();
     setLoading(false);
     notify("you are logout successfully");
@@ -154,23 +123,10 @@ const Account = () => {
             >
               Earnings
             </Button>
-            {isgoogleLogout && (
-              <Button variant="text" onClick={logoutHadler}>
-                Log out
-              </Button>
-            )}
-            {/* {googleLogout && (
-              <Button variant="text">
-                <div id="signOutButton">
-                  <GoogleLogout
-                    className="customGooglelogout"
-                    clientId={clientId}
-                    buttonText="Logout"
-                    onLogoutSuccess={onSuccessLogout}
-                  />
-                </div>
-              </Button>
-            )} */}
+
+            <Button variant="text" onClick={logoutHadler}>
+              Log out
+            </Button>
           </Box>
           {loading && (
             <Backdrop

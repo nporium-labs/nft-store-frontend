@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import * as fcl from "@onflow/fcl";
 import { makeStyles } from "@mui/styles";
@@ -27,6 +27,7 @@ import FilterBoxWallet from "components/FilterBox/FilterBoxWallet";
 import RecentCard from "components/RecentCard";
 
 import styles from "assets/jss/views/profileStyles";
+import { AppContext } from "context/AppContextProvider";
 import { Login, LogOut } from "config";
 
 const useStyles = makeStyles(styles);
@@ -41,11 +42,15 @@ const Profile = () => {
   const [walletOption, setWalletOption] = useState(false);
   const [userAddress, setUserAddress] = useState();
 
+  const { logged } = useContext(AppContext);
   const open = Boolean(anchorEl);
 
   useEffect(() => {
     setUserName(localStorage.getItem("name"));
-  }, [userName]);
+    if (!logged) {
+      navigate("/login");
+    }
+  }, [userName, logged]);
   const handleNavigate = (e, url) => {
     e.preventDefault();
     navigate(url);

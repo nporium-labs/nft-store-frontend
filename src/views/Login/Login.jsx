@@ -1,15 +1,18 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
+import axios from "axios";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "@mui/styles";
 import { toast } from "react-toastify";
-import jwt_decode from "jwt-decode";
+import { Formik } from "formik";
+import * as yup from "yup";
+import { useFormik } from "formik";
+
 import CircularProgress from "@mui/material/CircularProgress";
 import Backdrop from "@mui/material/Backdrop";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import Checkbox from "@mui/material/Checkbox";
 import Link from "@mui/material/Link";
 
 import CustomContainer from "components/CustomContainer";
@@ -18,137 +21,129 @@ import StyledBox from "components/StyledBox";
 import TextField from "components/CustomInput/TextField";
 
 import { AppContext } from "context/AppContextProvider";
-import { GoogleLogin } from "@react-oauth/google";
-
+import { useGoogleLogin } from "@react-oauth/google";
 import styles from "assets/jss/views/authStyles";
 import { loginWithGoogle, login } from "services";
-import { Button } from "@mui/material";
 
 const useStyles = makeStyles(styles);
 
 const Login = () => {
   const classes = useStyles();
-  let userStorageEmail = localStorage.getItem("email");
+
   const navigate = useNavigate();
-  const [email, setEmail] = useState(() => {
-    if (!userStorageEmail) {
-      return "";
-    } else {
-      return userStorageEmail;
+
+  const [responseError, setResponseError] = useState();
+  let [loading, setLoading] = useState();
+
+  const { handleLogin, logged, userName } = useContext(AppContext);
+
+  useEffect(() => {
+    if (logged && userName !== null) {
+      navigate("/");
     }
   });
 
-  const [pasword, setPasword] = useState();
-  const [emailError, setEmailError] = useState();
-  const [passwrodError, setPasswrodError] = useState();
-  const [checkbox, setCheckbox] = useState(false);
-  let [loading, setLoading] = useState();
+  const validationFormSchema = yup.object({
+    email: yup
+      .string()
+      .email("Please enter a valid email address.")
+      .required("email is required"),
+    password: yup
+      .string()
+      .required("password is required")
+      .min(8, "Your password length must be greater than or equal to 8")
+      .matches(
+        /[a-z]+/,
+        "Your password must contain one or more lowercase characters."
+      )
+      .matches(
+        /[A-Z]+/,
+        "Your password must contain one or more uppercase characters."
+      )
+      .matches(
+        /[@$!%*#?&]+/,
+        "The password must contain one or more special characters."
+      )
+      .matches(/\d+/, "Your password must contain one or more numeric values."),
+  });
 
-  const { handleLogin } = useContext(AppContext);
-
-  const onSuccess = async (res) => {
-    setLoading(true);
-    console.log(res);
-    var token = jwt_decode(res.credential);
-    const result = await loginWithGoogle(
-      token.sub,
-      token.name,
-      token.givenName,
-      token.family_name,
-      token.picture,
-      token.email,
-      token.email_verified,
-      token.locale
-    );
-    if (result && result.loginResult.isError === false) {
-      localStorage.setItem("token", result.loginResult.token);
-      localStorage.setItem("name", result.loginResult.userName);
-      localStorage.setItem("email", result.loginResult.email);
-      localStorage.setItem("google", true);
-      localStorage.setItem("checked", false);
-      handleLogin(result.loginResult.userName);
-      notify(result.loginResult);
-      navigate("/");
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: validationFormSchema,
+    onSubmit: async (values) => {
+      if (
+        values.email &&
+        values.password &&
+        values.email.length !== 0 &&
+        values.password.length !== 0
+      ) {
+        setLoading(true);
+        const result = await login(values.email, values.password);
+        if (result.loginResult && result.loginResult.isError === false) {
+          localStorage.setItem("token", result.loginResult.token);
+          localStorage.setItem("name", result.loginResult.userName);
+          localStorage.setItem("email", result.loginResult.email);
+          localStorage.setItem("google", false);
+          handleLogin(result.loginResult.userName);
+          notify(result.loginResult.message);
+          setLoading(false);
+          navigate("/");
+        } else if (result && result.isError === true) {
+          setResponseError(
+            "The credentials you have entered do not match our records."
+          );
+          setLoading(false);
+        } else {
+          setResponseError(
+            "The credentials you have entered do not match our records."
+          );
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
       setLoading(false);
-    }
-  };
+    },
+  });
 
-  const onFailure = (res) => {
-    // console.log("fail to login", res);
-  };
-  const isValidEmail = (email) => {
-    return /\S+@\S+\.\S+/.test(email);
-  };
-  const isValidPassword = (password) => {
-    if (password.length > 5 && password.length < 20) {
-      return true;
-    } else {
-      return false;
-    }
-  };
-
-  const passwordHanlder = (event) => {
-    event.preventDefault();
-    if (!isValidPassword(event.target.value)) {
-      setPasswrodError("please provide minimum 6 letters");
-    } else {
-      setPasswrodError(null);
-    }
-    setPasword(event.target.value);
-  };
-
-  const handleCheckBox = (e) => {
-    const { value, checked } = e.target;
-
-    if (checked) {
-      setCheckbox(true);
-    } else {
-      setCheckbox(false);
-    }
-  };
-  const emailHanlder = (event) => {
-    event.preventDefault();
-    if (!isValidEmail(event.target.value)) {
-      setEmailError("Email is not valid");
-    } else {
-      setEmailError(null);
-    }
-    setEmail(event.target.value);
-  };
-
-  const loginHandler = async (event) => {
-    event.preventDefault();
-    if (
-      email &&
-      pasword &&
-      email.length !== 0 &&
-      pasword.length !== 0 &&
-      isValidPassword(pasword) &&
-      isValidEmail(email)
-    ) {
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (codeResponse) => {
+      const userInfo = await axios
+        .get("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${codeResponse.access_token}` },
+        })
+        .then((res) => res.data);
       setLoading(true);
-      const result = await login(email, pasword);
-      if (result.loginResult && result.loginResult.isError === false) {
+      const result = await loginWithGoogle(
+        userInfo.sub,
+        userInfo.name,
+        userInfo.given_name,
+        userInfo.family_name,
+        userInfo.picture,
+        userInfo.email,
+        userInfo.email_verified,
+        userInfo.locale
+      );
+      if (result && result.loginResult.isError === false) {
         localStorage.setItem("token", result.loginResult.token);
         localStorage.setItem("name", result.loginResult.userName);
         localStorage.setItem("email", result.loginResult.email);
-        localStorage.setItem("google", false);
-        localStorage.setItem("checked", checkbox);
+        localStorage.setItem("google", true);
+        localStorage.setItem("checked", false);
         handleLogin(result.loginResult.userName);
-        notify(result.loginResult.message);
-        setLoading(false);
+        notify(result.loginResult);
         navigate("/");
-      } else if (result && result.isError === true) {
-        notify("User With this email and password does not exist");
-        setLoading(false);
-      } else {
-        notify("User With this email and password does not exist");
         setLoading(false);
       }
-    } else {
-      setLoading(false);
-    }
-  };
+    },
+    onFailure: async (codeResponse) => {
+      notify("We are facing issue while login through google");
+    },
+    flow: "implicit",
+  });
 
   const notify = (message) => toast(message);
 
@@ -181,23 +176,10 @@ const Login = () => {
         <CustomContainer>
           <Box className={classes.form} mx="auto">
             <Box>
-              <div className="googlebtn">
-                <GoogleLogin
-                  context={"signin"}
-                  render={(renderProps) => (
-                    <Button
-                      fullWidth
-                      className="w-100 googlebtn-inner"
-                      onClick={renderProps.onClick}
-                      disabled={renderProps.disabled}
-                    >
-                      Sign in with google
-                    </Button>
-                  )}
-                  onSuccess={onSuccess}
-                  onFailure={onFailure}
-                />
-              </div>
+              <CustomButton fullWidth onClick={googleLogin}>
+                <img src="/images/icons/google.png" alt="" />
+                &nbsp; Sign in with Google
+              </CustomButton>
             </Box>
             <Box
               my={4}
@@ -210,52 +192,56 @@ const Login = () => {
                 or Login with Email
               </Typography>
             </Box>
-
-            <Box sx={{ marginBottom: "30px" }}>
-              <TextField
-                label="Email"
-                placeholder="E.g. johndoe@email.com"
-                onChange={emailHanlder}
-                value={email}
-              />
-              <p className="error-msg">{emailError}</p>
-            </Box>
-            <Box sx={{ marginBottom: "30px" }}>
-              <TextField
-                label="Password"
-                placeholder="Enter your password"
-                type="password"
-                onChange={passwordHanlder}
-              />
-              <p className="error-msg">{passwrodError}</p>
-            </Box>
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-              mb={5}
-              flexWrap="wrap"
-            >
-              <Box display="flex" alignItems="center">
-                <Checkbox onChange={handleCheckBox} />
-                <Typography variant="body1" color="#777684">
-                  Remember Me
-                </Typography>
+            <form onSubmit={formik.handleSubmit}>
+              <Box sx={{ marginBottom: "30px" }}>
+                <TextField
+                  id="email"
+                  label="Email"
+                  placeholder="E.g. johndoe@email.com"
+                  onChange={formik.handleChange}
+                  value={formik.values.email}
+                  error={formik.touched.email && Boolean(formik.errors.email)}
+                  helpertext={formik.touched.email && formik.errors.email}
+                />
+                <p className="error-msg">
+                  {formik.touched.email && formik.errors.email}
+                </p>
               </Box>
-              <Link href="/forgot" sx={{ color: "#0F0E36" }} underline="none">
-                Forgot Password?
-              </Link>
-            </Box>
-
-            <Box mb={5}>
-              <CustomButton
-                fullWidth
-                className={classes.loginBtn}
-                onClick={loginHandler}
+              <Box sx={{ marginBottom: "30px" }}>
+                <TextField
+                  id="password"
+                  label="Password"
+                  placeholder="Enter your password"
+                  type="password"
+                  onChange={formik.handleChange}
+                  value={formik.values.password}
+                  error={
+                    formik.touched.password && Boolean(formik.errors.password)
+                  }
+                  helpertext={formik.touched.password && formik.errors.password}
+                />
+                <p className="error-msg">
+                  {formik.touched.password && formik.errors.password}
+                </p>
+              </Box>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                mb={5}
+                flexWrap="wrap"
               >
-                Login
-              </CustomButton>
-            </Box>
+                <Link href="/forgot" sx={{ color: "#0F0E36" }} underline="none">
+                  Forgot Password?
+                </Link>
+              </Box>
+              {responseError && <p className="error-msg">{responseError}</p>}
+              <Box mb={5}>
+                <CustomButton fullWidth className={classes.loginBtn}>
+                  Login
+                </CustomButton>
+              </Box>
+            </form>
             {loading && (
               <Backdrop
                 sx={{

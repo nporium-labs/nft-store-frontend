@@ -28,22 +28,10 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import Forgot from "views/Forgot";
 
 const theme = createTheme({});
-
 function App() {
-  // useEffect(() => {
-  //   const start = () => {
-  //     gapi.client.init({
-  //       clientId:
-  //         "655028439560-rqh779jka3tg38gcbb4862pobvo0gmg5.apps.googleusercontent.com",
-  //       scope: "email",
-  //     });
-  //   };
-  //   gapi.load("client:auth2", start);
-  // });
-
   return (
     <ThemeProvider theme={theme}>
-      <GoogleOAuthProvider clientId="655028439560-rqh779jka3tg38gcbb4862pobvo0gmg5.apps.googleusercontent.com">
+      <GoogleOAuthProvider clientId={process.env.REACT_APP_MY_CLIENT}>
         <AppContextProvider>
           <BrowserRouter>
             <Layout>

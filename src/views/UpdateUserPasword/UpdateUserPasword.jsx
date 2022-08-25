@@ -3,6 +3,9 @@ import clsx from "clsx";
 import { useNavigate, useParams } from "react-router-dom";
 import { makeStyles } from "@mui/styles";
 import { toast } from "react-toastify";
+import * as yup from "yup";
+import { useFormik } from "formik";
+import { Button } from "@mui/material";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -101,6 +104,67 @@ const UpdateUserPasword = () => {
       setLoading(false);
     }
   };
+
+  const validationSchemaForm = yup.object({
+    password: yup
+      .string()
+      .required("password is required")
+      .min(8, "Your password length must be greater than or equal to 8")
+      .matches(
+        /[a-z]+/,
+        "Your password must contain one or more lowercase characters."
+      )
+      .matches(
+        /[A-Z]+/,
+        "Your password must contain one or more uppercase characters."
+      )
+      .matches(
+        /[@$!%*#?&]+/,
+        "The password must contain one or more special characters."
+      )
+      .matches(/\d+/, "Your password must contain one or more numeric values."),
+    repassword: yup
+      .string()
+      .oneOf([yup.ref("password"), null], "passwords must match")
+      .required("Password confirm is required"),
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      password: "",
+      repassword: "",
+    },
+    validationSchema: validationSchemaForm,
+    onSubmit: async (values) => {
+      if (
+        values.password &&
+        values.repassword &&
+        values.password.length !== 0 &&
+        values.repassword.length !== 0 &&
+        values.password.toLowerCase() === repasword.toLowerCase() &&
+        tokenParam &&
+        tokenParam.length !== 0
+      ) {
+        setLoading(true);
+        const result = await updateNewPassword(values.password, tokenParam);
+        if (result && result.result.isError === false) {
+          notify(result.result.message);
+          setLoading(false);
+          navigate("/login");
+        } else {
+          notify(
+            "There is an issue while updating your pasword please try again"
+          );
+          navigate("/login");
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+        navigate("/login");
+      }
+      setLoading(false);
+    },
+  });
 
   const notify = (message) => toast(message);
   return (

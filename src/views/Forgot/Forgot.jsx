@@ -3,6 +3,10 @@ import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "@mui/styles";
 import { toast } from "react-toastify";
+import * as yup from "yup";
+import { useFormik } from "formik";
+import { Button } from "@mui/material";
+
 import CircularProgress from "@mui/material/CircularProgress";
 import Backdrop from "@mui/material/Backdrop";
 
@@ -24,45 +28,46 @@ const Login = () => {
   const classes = useStyles();
 
   const navigate = useNavigate();
-  const [email, setEmail] = useState();
-  const [emailError, setEmailError] = useState();
+  const [responseError, setResponseError] = useState();
   let [loading, setLoading] = useState();
   window.localStorage.clear();
 
-  const isValidEmail = (email) => {
-    return /\S+@\S+\.\S+/.test(email);
-  };
+  const validationFormSchema = yup.object({
+    email: yup
+      .string()
+      .email("Please enter a valid email address.")
+      .required("email is required"),
+  });
 
-  const emailHanlder = (event) => {
-    event.preventDefault();
-    if (!isValidEmail(event.target.value)) {
-      setEmailError("Email is not valid");
-    } else {
-      setEmailError(null);
-    }
-    setEmail(event.target.value);
-  };
-
-  const forgotHandler = async (event) => {
-    event.preventDefault();
-    if (email && email.length !== 0 && isValidEmail(email)) {
-      setLoading(true);
-      const result = await forgotPassword(email);
-      if (result && result.result.isError === false) {
-        notify(result.result.message);
-        setLoading(false);
-        navigate("/");
-      } else if (result && result.result.isError === true) {
-        notify("User With this email and password does not exist");
-        setLoading(false);
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+    },
+    validationSchema: validationFormSchema,
+    onSubmit: async (values) => {
+      if (values.email && values.email.length !== 0) {
+        setLoading(true);
+        const result = await forgotPassword(values.email);
+        console.log(result);
+        if (result && !result.isError) {
+          notify(
+            "We have emailed your password reset link, please check your email."
+          );
+          setLoading(false);
+          navigate("/");
+        } else if (result && result.isError === true) {
+          setResponseError("We can't find a user with that email address.");
+          setLoading(false);
+        } else {
+          setResponseError("We can't find a user with that email address.");
+          setLoading(false);
+        }
       } else {
-        notify("User With this email and password does not exist");
         setLoading(false);
       }
-    } else {
       setLoading(false);
-    }
-  };
+    },
+  });
 
   const notify = (message) => toast(message);
 
@@ -94,25 +99,28 @@ const Login = () => {
       <Box className={classes.contents}>
         <CustomContainer>
           <Box className={classes.form} mx="auto">
-            <Box sx={{ marginBottom: "30px" }}>
-              <TextField
-                label="Email"
-                placeholder="E.g. johndoe@email.com"
-                onChange={emailHanlder}
-                value={email}
-              />
-              <p className="error-msg">{emailError}</p>
-            </Box>
-
-            <Box mb={5}>
-              <CustomButton
-                fullWidth
-                className={classes.loginBtn}
-                onClick={forgotHandler}
-              >
-                Request reset link
-              </CustomButton>
-            </Box>
+            <form onSubmit={formik.handleSubmit}>
+              <Box sx={{ marginBottom: "30px" }}>
+                <TextField
+                  id="email"
+                  label="Email"
+                  placeholder="E.g. johndoe@email.com"
+                  onChange={formik.handleChange}
+                  value={formik.values.email}
+                  error={formik.touched.email && Boolean(formik.errors.email)}
+                  helpertext={formik.touched.email && formik.errors.email}
+                />
+                <p className="error-msg">
+                  {formik.touched.email && formik.errors.email}
+                </p>
+              </Box>
+              {responseError && <p className="error-msg">{responseError}</p>}
+              <Box mb={5}>
+                <CustomButton fullWidth className={classes.loginBtn}>
+                  Request reset link
+                </CustomButton>
+              </Box>
+            </form>
             {loading && (
               <Backdrop
                 sx={{

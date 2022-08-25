@@ -22,6 +22,7 @@ const CustomButton = (props) => {
         [className]: className,
       })}
       variant="outlined"
+      type="submit"
     >
       {children}
     </Button>
