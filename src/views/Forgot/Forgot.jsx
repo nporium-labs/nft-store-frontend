@@ -48,7 +48,6 @@ const Login = () => {
       if (values.email && values.email.length !== 0) {
         setLoading(true);
         const result = await forgotPassword(values.email);
-        console.log(result);
         if (result && !result.isError) {
           notify(
             "We have emailed your password reset link, please check your email."

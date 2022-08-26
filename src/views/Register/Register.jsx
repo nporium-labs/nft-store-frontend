@@ -126,7 +126,6 @@ const Register = () => {
         );
         setLoading(false);
       }
-      setLoading(false);
     },
   });
 
@@ -278,7 +277,11 @@ const Register = () => {
                     <Button onClick={showPasswordHandler}>
                       <InputAdornment position="end">
                         <img
-                          src="/images/icons/iconmonstr-eye-off-lined.png"
+                          src={
+                            !paswordShow
+                              ? "/images/icons/iconmonstr-eye-off-lined.png"
+                              : "/images/icons/iconmonstr-eye-lined.png"
+                          }
                           alt=""
                         />
                       </InputAdornment>
@@ -308,7 +311,11 @@ const Register = () => {
                     <Button onClick={showRePasswordHandler}>
                       <InputAdornment position="end">
                         <img
-                          src="/images/icons/iconmonstr-eye-off-lined.png"
+                          src={
+                            !rePaswordShow
+                              ? "/images/icons/iconmonstr-eye-off-lined.png"
+                              : "/images/icons/iconmonstr-eye-lined.png"
+                          }
                           alt=""
                         />
                       </InputAdornment>
@@ -344,11 +351,10 @@ const Register = () => {
                       terms & conditions
                     </Link>
                   </Typography>
-
-                  {formik.touched.terms && (
-                    <p className="error-msg">{formik.errors.terms} </p>
-                  )}
                 </Box>
+                {formik.touched.terms && (
+                  <p className="error-msg">{formik.errors.terms} </p>
+                )}
                 <Box display="flex" alignItems="center">
                   <Checkbox
                     id="newsletter"
@@ -367,7 +373,7 @@ const Register = () => {
                   </Typography>
                 </Box>
               </Box>
-
+              {responseError && <p className="error-msg">{responseError}</p>}
               <Box mb={5}>
                 <CustomButton fullWidth className={classes.signupBtn}>
                   Register

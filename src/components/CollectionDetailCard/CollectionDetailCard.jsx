@@ -36,7 +36,6 @@ const CollectionDetailCard = (props) => {
       "https://images.unsplash.com/photo-1505816014357-96b5ff457e9a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1633&q=80";
     let data = { key: "artist", value: "danish" };
     let result = await mintNFTs("first nft", "this is my first nft", img, data);
-    console.log("data", result);
   };
 
   return (
