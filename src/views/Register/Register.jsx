@@ -333,7 +333,7 @@ const Register = () => {
                 mb={5}
                 flexWrap="wrap"
               >
-                <Box display="flex" alignItems="center">
+                <Box display="flex" alignItems="center" className="terms">
                   <Checkbox
                     id="terms"
                     name="terms"
@@ -347,7 +347,11 @@ const Register = () => {
                   />
                   <Typography variant="body1" color="#777684">
                     I’ve read and accept the &nbsp;
-                    <Link href="/" sx={{ color: "#777684" }}>
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      sx={{ color: "#777684" }}
+                    >
                       terms & conditions
                     </Link>
                   </Typography>
@@ -355,7 +359,7 @@ const Register = () => {
                 {formik.touched.terms && (
                   <p className="error-msg">{formik.errors.terms} </p>
                 )}
-                <Box display="flex" alignItems="center">
+                <Box display="flex" alignItems="center" className="terms">
                   <Checkbox
                     id="newsletter"
                     onChange={formik.handleChange}

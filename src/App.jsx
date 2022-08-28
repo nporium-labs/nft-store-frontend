@@ -26,6 +26,7 @@ import UpdateUserPasword from "views/UpdateUserPasword";
 import AppContextProvider from "context/AppContextProvider";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Forgot from "views/Forgot";
+import Terms from "views/Terms";
 
 const theme = createTheme({});
 function App() {
@@ -61,6 +62,7 @@ function App() {
                 <Route path="/account" element={<Account />} />
                 <Route path="/forgot" element={<Forgot />} />
                 <Route path="/forgot/:id" element={<UpdateUserPasword />} />
+                <Route path="/terms" element={<Terms />} />
                 <Route path="/" element={<Home />} />
               </Routes>
             </Layout>

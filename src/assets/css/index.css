@@ -71,3 +71,6 @@ p.selectOption {
 button.googlebtn-inner {
   padding: 20px 20px !important;
 }
+.terms {
+  margin-left: -10px;
+}

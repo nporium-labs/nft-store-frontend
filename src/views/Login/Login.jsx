@@ -133,7 +133,7 @@ const Login = () => {
         localStorage.setItem("google", true);
         localStorage.setItem("checked", false);
         handleLogin(result.loginResult.userName);
-        notify(result.loginResult);
+        notify(result.loginResult.message);
         navigate("/");
         setLoading(false);
       }
