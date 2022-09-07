@@ -50,6 +50,14 @@ const accountStyles = (theme) => ({
       border: "none !important",
     },
   },
+  connectBtn: {
+    "&.MuiButton-root": {
+      color: "#fff !important",
+      backgroundColor: "#6680FF !important",
+      border: "none !important",
+      float: "right !important",
+    },
+  },
 });
 
 export default accountStyles;

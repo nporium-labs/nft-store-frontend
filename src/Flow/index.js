@@ -1,3 +1,4 @@
+import React from "react";
 import * as fcl from "@onflow/fcl";
 
 export const mintNFTs = async (name, description, media, data) => {
@@ -9,7 +10,7 @@ export const mintNFTs = async (name, description, media, data) => {
   const transactionId = await fcl
     .send([
       fcl.transaction`
-      import NPMContract from 0x3614f2c88992e88b
+      import NPMContract from ${process.env.REACT_APP_NPMCONTRACT}
 
       transaction() {
           prepare(acct: AuthAccount) {
@@ -30,15 +31,58 @@ export const mintNFTs = async (name, description, media, data) => {
   return response;
 };
 
+export const transferFlow = async (to, amount) => {
+  const transactionId = await fcl
+    .send([
+      fcl.transaction`
+      import FungibleToken from ${process.env.REACT_APP_FUNGIBLETOKEN}
+      import FlowToken from ${process.env.REACT_APP_FLOWTOKEN}
+      transaction() {
+      
+          // The Vault resource that holds the tokens that are being transferred
+          let sentVault: @FungibleToken.Vault
+      
+          prepare(signer: AuthAccount) {
+      
+              // Get a reference to the signer's stored vault
+              let vaultRef = signer.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+            ?? panic("Could not borrow reference to the owner's Vault!")
+      
+              // Withdraw tokens from the signer's stored vault
+              self.sentVault <- vaultRef.withdraw(amount: UFix64(${amount}))
+          }
+      
+          execute {
+      
+              // Get a reference to the recipient's Receiver
+              let receiverRef =  getAccount(${to})
+                  .getCapability(/public/flowTokenReceiver)
+                  .borrow<&{FungibleToken.Receiver}>()
+            ?? panic("Could not borrow receiver reference to the recipient's Vault")
+      
+              // Deposit the withdrawn tokens in the recipient's receiver
+              receiverRef.deposit(from: <-self.sentVault)
+          }
+      }`,
+      fcl.proposer(fcl.authz),
+      fcl.authorizations([fcl.authz]),
+      fcl.payer(fcl.authz),
+      fcl.limit(9999),
+    ])
+    .then(fcl.decode);
+  let response = await fcl.tx(transactionId).onceSealed();
+  return response;
+};
+
 export const purchseNPM = async (sellerAddress, tokenID) => {
   const transactionId = await fcl
     .send([
       fcl.transaction`
-      import NonFungibleToken from 0x631e88ae7f1d7c20
-      import NPMContract from 0x3614f2c88992e88b
-      import FungibleToken from 0x9a0766d93b6608b7
-      import FlowToken from 0x7e60df042a9c0868
-      import NFTMarketplace from 0x3614f2c88992e88b
+      import NonFungibleToken from ${process.env.REACT_APP_NONFUNGIBLETOKEN}
+      import NPMContract from ${process.env.REACT_APP_NPMCONTRACT}
+      import FungibleToken from ${process.env.REACT_APP_FUNGIBLETOKEN}
+      import FlowToken from ${process.env.REACT_APP_FLOWTOKEN}
+      import NFTMarketplace from ${process.env.REACT_APP_MARKETPLACECONTRACT}
 
       transaction(sellerAddress: Address, tokenID: UInt64){
           let collectionCap: Capability<&{NPMContract.NPMContractCollectionPublic}>
@@ -77,11 +121,11 @@ export const purchseNPMWithFlow = async (
   const transactionId = await fcl
     .send([
       fcl.transaction`
-      import NonFungibleToken from 0x631e88ae7f1d7c20
-      import NPMContract from 0x3614f2c88992e88b
-      import FungibleToken from 0x9a0766d93b6608b7
-      import FlowToken from 0x7e60df042a9c0868
-      import NFTMarketplace from 0x3614f2c88992e88b
+      import NonFungibleToken from ${process.env.REACT_APP_NONFUNGIBLETOKEN}
+      import NPMContract from ${process.env.REACT_APP_NPMCONTRACT}
+      import FungibleToken from ${process.env.REACT_APP_FUNGIBLETOKEN}
+      import FlowToken from ${process.env.REACT_APP_FLOWTOKEN}
+      import NFTMarketplace from ${process.env.REACT_APP_MARKETPLACECONTRACT}
 
       transaction(){
           let collectionCap: Capability<&{NPMContract.NPMContractCollectionPublic}>
@@ -121,11 +165,11 @@ export const setupAccount = async () => {
   const transactionId = await fcl
     .send([
       fcl.transaction`
-      import NonFungibleToken from 0x631e88ae7f1d7c20
-      import NPMContract from 0x3614f2c88992e88b
-      import FungibleToken from 0x9a0766d93b6608b7
-      import FlowToken from 0x7e60df042a9c0868
-      import NFTMarketplace from 0x3614f2c88992e88b
+      import NonFungibleToken from ${process.env.REACT_APP_NONFUNGIBLETOKEN}
+      import NPMContract from ${process.env.REACT_APP_NPMCONTRACT}
+      import FungibleToken from ${process.env.REACT_APP_FUNGIBLETOKEN}
+      import FlowToken from ${process.env.REACT_APP_FLOWTOKEN}
+      import NFTMarketplace from ${process.env.REACT_APP_MARKETPLACECONTRACT}
 
       transaction() {
           prepare(acct: AuthAccount) {
@@ -150,11 +194,11 @@ export const listNFTsForSale = async (tokenId, price) => {
   const transactionId = await fcl
     .send([
       fcl.transaction`
-      import NonFungibleToken from 0x631e88ae7f1d7c20
-      import NPMContract from 0x3614f2c88992e88b
-      import FungibleToken from 0x9a0766d93b6608b7
-      import FlowToken from 0x7e60df042a9c0868
-      import NFTMarketplace from 0x3614f2c88992e88b
+      import NonFungibleToken from ${process.env.REACT_APP_NONFUNGIBLETOKEN}
+      import NPMContract from ${process.env.REACT_APP_NPMCONTRACT}
+      import FungibleToken from ${process.env.REACT_APP_FUNGIBLETOKEN}
+      import FlowToken from ${process.env.REACT_APP_FLOWTOKEN}
+      import NFTMarketplace from ${process.env.REACT_APP_MARKETPLACECONTRACT}
 
       transaction(){
           let collectionRef: &NPMContract.Collection
@@ -184,11 +228,11 @@ export const unListNFTsForSale = async (tokenId) => {
   const transactionId = await fcl
     .send([
       fcl.transaction`
-      import NonFungibleToken from 0x631e88ae7f1d7c20
-      import NPMContract from 0x3614f2c88992e88b
-      import FungibleToken from 0x9a0766d93b6608b7
-      import FlowToken from 0x7e60df042a9c0868
-      import NFTMarketplace from 0x3614f2c88992e88b
+      import NonFungibleToken from ${process.env.REACT_APP_NONFUNGIBLETOKEN}
+      import NPMContract from ${process.env.REACT_APP_NPMCONTRACT}
+      import FungibleToken from ${process.env.REACT_APP_FUNGIBLETOKEN}
+      import FlowToken from ${process.env.REACT_APP_FLOWTOKEN}
+      import NFTMarketplace from ${process.env.REACT_APP_MARKETPLACECONTRACT}
 
       transaction(){
           let collectionRef: &NPMContract.Collection
@@ -225,8 +269,8 @@ export const createEmptyNFTCollection = async () => {
   const transactionId = await fcl
     .send([
       fcl.transaction`
-      import NonFungibleToken from 0x631e88ae7f1d7c20
-      import NPMContract from 0x3614f2c88992e88b
+      import NonFungibleToken from ${process.env.REACT_APP_NONFUNGIBLETOKEN}
+      import NPMContract from ${process.env.REACT_APP_NPMCONTRACT}
 
       transaction() {
           prepare(acct: AuthAccount) {
@@ -248,9 +292,9 @@ export const createEmptySaleCollection = async () => {
   const transactionId = await fcl
     .send([
       fcl.transaction`
-      import FungibleToken from 0x9a0766d93b6608b7
-      import FlowToken from 0x7e60df042a9c0868
-      import NFTMarketplace from 0x3614f2c88992e88b
+      import FungibleToken from ${process.env.REACT_APP_FUNGIBLETOKEN}
+      import FlowToken from ${process.env.REACT_APP_FLOWTOKEN}
+      import NFTMarketplace from ${process.env.REACT_APP_MARKETPLACECONTRACT}
 
       transaction() {
           prepare(acct: AuthAccount) {
@@ -273,7 +317,7 @@ export const getAllListedNFT = async () => {
   const response = await fcl
     .send([
       fcl.script`
-    import NFTMarketplace from 0x3614f2c88992e88b
+    import NFTMarketplace from ${process.env.REACT_APP_MARKETPLACECONTRACT}
 
     pub fun main() : {Address: {UInt64: NFTMarketplace.ListingItemPublic}} {
         return NFTMarketplace.getAllListingNMPs()
@@ -287,7 +331,7 @@ export const getAllListedNFTsByUser = async (user) => {
   const response = await fcl
     .send([
       fcl.script`
-    import NFTMarketplace from 0x3614f2c88992e88b
+    import NFTMarketplace from ${process.env.REACT_APP_MARKETPLACECONTRACT}
 
     pub fun main() : {UInt64: NFTMarketplace.ListingItemPublic} {
         return NFTMarketplace.getAllListingNMPsByUser(user: ${user})
@@ -301,8 +345,8 @@ export const getResolverView = async (id, account) => {
   const response = await fcl
     .send([
       fcl.script`
-    import NPMContract from 0x3614f2c88992e88b
-    import MetadataViews from 0x631e88ae7f1d7c20
+    import NPMContract from ${process.env.REACT_APP_NPMCONTRACT}
+    import MetadataViews from ${process.env.REACT_APP_MAATADATAVIEWS}
     
     pub fun main(id: UInt64, account: Address) : &AnyResource{MetadataViews.Resolver} {
         let account1 = getAccount(${account})
@@ -321,7 +365,7 @@ export const getUserNFTs = async (account) => {
   const response = await fcl
     .send([
       fcl.script`
-    import NPMContract from 0x3614f2c88992e88b
+    import NPMContract from ${process.env.REACT_APP_NPMCONTRACT}
 
     pub fun main() : {UInt64: AnyStruct}{
         let account1 = getAccount(${account})
@@ -347,6 +391,25 @@ export const getUserNFTs = async (account) => {
         }
         return dict
     }`,
+    ])
+    .then(fcl.decode);
+  return response;
+};
+
+export const getUserFlowBalance = async (account) => {
+  const response = await fcl
+    .send([
+      fcl.script`
+      import FungibleToken from ${process.env.REACT_APP_FUNGIBLETOKEN}
+      import FlowToken from ${process.env.REACT_APP_FLOWTOKEN}
+      pub fun main():UFix64 {
+          let vaultRef = getAccount(${account})
+          .getCapability(/public/flowTokenBalance)
+          .borrow<&FlowToken.Vault{FungibleToken.Balance}>()
+          ?? panic("Could not borrow Balance reference to the Vault")
+          return vaultRef.balance
+      }
+      `,
     ])
     .then(fcl.decode);
   return response;

@@ -28,7 +28,6 @@ import RecentCard from "components/RecentCard";
 
 import styles from "assets/jss/views/profileStyles";
 import { AppContext } from "context/AppContextProvider";
-import { Login, LogOut } from "config";
 
 const useStyles = makeStyles(styles);
 
@@ -39,8 +38,6 @@ const Profile = () => {
   const [tab, setTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
   const [userName, setUserName] = useState();
-  const [walletOption, setWalletOption] = useState(false);
-  const [userAddress, setUserAddress] = useState();
 
   const { logged } = useContext(AppContext);
   const open = Boolean(anchorEl);
@@ -65,19 +62,6 @@ const Profile = () => {
 
   const handleCloseFilter = () => {
     setAnchorEl(null);
-  };
-
-  const loginWallet = async () => {
-    await Login();
-    setWalletOption(true);
-    const currentUser = await fcl.currentUser.snapshot();
-    setUserAddress(currentUser.addr);
-  };
-
-  const logoutWallet = async () => {
-    await LogOut();
-    setWalletOption(false);
-    setUserAddress("");
   };
 
   const lists = [
@@ -136,7 +120,6 @@ const Profile = () => {
                 Toast. Doodles come in a joyful range of colors, traits and
                 sizes with a…
               </Typography>
-              <p>{userAddress}</p>
               <Button
                 variant="text"
                 endIcon={<KeyboardArrowDownIcon />}
@@ -362,21 +345,6 @@ const Profile = () => {
                 title="Currency"
                 options={["Buy Now", "On Auction", "New", "Has Offers"]}
               />
-              {!walletOption && (
-                <FilterBoxWallet
-                  title="Connect wallet"
-                  options={["Login"]}
-                  handler={loginWallet}
-                />
-              )}
-              {walletOption && (
-                <FilterBoxWallet
-                  title="Connect wallet"
-                  options={["Logout"]}
-                  handler={logoutWallet}
-                />
-              )}
-
               <Divider
                 sx={{
                   borderColor: "#EBEAEF",
