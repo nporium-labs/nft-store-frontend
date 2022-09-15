@@ -34,7 +34,7 @@ const AdminCollectionDetailCard = (props) => {
     if (nftId && nftId != 0) {
       var id = nftId;
       navigate(`listNftForSale/${id}`, { state: { id } });
-      console.log("nft listed", nftId);
+      // console.log("nft listed", nftId);
     }
   };
   return (

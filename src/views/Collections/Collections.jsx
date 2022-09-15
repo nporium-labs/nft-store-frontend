@@ -179,7 +179,7 @@ const Collections = () => {
     ).values(),
   ];
 
-  console.log("nftsCollection", nftsCollection);
+  // console.log("nftsCollection", nftsCollection);
 
   return (
     <Box>

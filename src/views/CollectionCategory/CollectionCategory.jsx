@@ -60,13 +60,13 @@ const CollectionCategory = () => {
   const path = window.location.pathname;
   const lastIndex = path.lastIndexOf("/");
   const collectionName = path.slice(lastIndex + 1);
-  console.log(collectionName);
+  // console.log(collectionName);
 
   const nftsForSpecifiCollection = userNfts.filter((nft) => {
     return nft?.name === collectionName;
   });
 
-  console.log("nftsForSpecifiCollection", nftsForSpecifiCollection);
+  // console.log("nftsForSpecifiCollection", nftsForSpecifiCollection);
 
   let singleNft;
   nftsForSpecifiCollection.map((nft) => {

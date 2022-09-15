@@ -30,7 +30,7 @@ const CollectionDetailCard = (props) => {
   //   [classes.photography]: data?.data.category === "Photography",
   //   [classes.virtualWorld]: data?.data.category === "Virtual World",
   // });
-  console.log("data", data);
+  // console.log("data", data);
   return (
     <Box className={classes.card} position="relative">
       <Box className={classes.cardMedia}>

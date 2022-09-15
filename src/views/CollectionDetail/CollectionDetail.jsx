@@ -39,7 +39,7 @@ const CollectionDetail = () => {
   const path = window.location.pathname;
   const lastIndex = path.lastIndexOf("/");
   const nftId = path.slice(lastIndex + 1);
-  console.log("nftId", nftId);
+  // console.log("nftId", nftId);
 
   useEffect(() => {
     const getNFTs = async () => {
@@ -61,7 +61,7 @@ const CollectionDetail = () => {
     return (userNft = nft);
   });
 
-  console.log("userNft", userNft);
+  // console.log("userNft", userNft);
 
   const rows = [
     {
