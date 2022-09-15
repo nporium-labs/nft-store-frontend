@@ -82,3 +82,19 @@ button.googlebtn-inner {
   top: 5px;
   left: 5px;
 }
+.selectBoxlabel {
+  color: #0f0e36 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  line-height: 26px !important;
+  margin-bottom: 10px !important;
+}
+
+.priceSpace {
+  padding-left: 8px !important;
+}
+.updatePrice {
+  color: #0f0e36;
+  font-weight: bold;
+  font-size: large;
+}

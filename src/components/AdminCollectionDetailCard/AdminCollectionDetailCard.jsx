@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "@mui/styles";
-import { mintNFTs } from "Flow";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -11,37 +10,37 @@ import Avatar from "@mui/material/Avatar";
 import CustomButton from "components/CustomButton";
 
 import styles from "assets/jss/components/collectionDetailCardStyles";
+import ListNftForSale from "views/ListNftForSale";
 
 const useStyles = makeStyles(styles);
 
-const CollectionDetailCard = (props) => {
+const AdminCollectionDetailCard = (props) => {
   const classes = useStyles();
   const navigate = useNavigate();
-
   const { data } = props;
 
   // const markClasses = clsx(classes.mark, {
-  //   [classes.art]: data?.data.category === "Art",
-  //   [classes.sport]: data?.data.category === "Sport",
-  //   [classes.forGood]: data?.data.category === "For Good",
-  //   [classes.music]: data?.data.category === "Music",
-  //   [classes.gaming]: data?.data.category === "Gaming",
-  //   [classes.utility]: data?.data.category === "Utility",
-  //   [classes.photography]: data?.data.category === "Photography",
-  //   [classes.virtualWorld]: data?.data.category === "Virtual World",
+  //   [classes.art]: data.type === "Art",
+  //   [classes.sport]: data.type === "Sport",
+  //   [classes.forGood]: data.type === "For Good",
+  //   [classes.music]: data.type === "Music",
+  //   [classes.gaming]: data.type === "Gaming",
+  //   [classes.utility]: data.type === "Utility",
+  //   [classes.photography]: data.type === "Photography",
+  //   [classes.virtualWorld]: data.type === "Virtual World",
   // });
-  console.log("data", data);
+
+  const listNftHandler = (nftId) => {
+    if (nftId && nftId != 0) {
+      var id = nftId;
+      navigate(`listNftForSale/${id}`, { state: { id } });
+      console.log("nft listed", nftId);
+    }
+  };
   return (
     <Box className={classes.card} position="relative">
       <Box className={classes.cardMedia}>
-        <img
-          src={
-            data?.metadata.data.artistCollectionAvatar
-              ? data?.metadata.data.artistCollectionAvatar
-              : data?.metadata.thumbnail
-          }
-          alt="media"
-        />
+        <img src={data.media} alt="" />
       </Box>
       <Box
         className={classes.userInfo}
@@ -51,19 +50,15 @@ const CollectionDetailCard = (props) => {
       >
         <Avatar
           alt={data.name}
-          src={
-            data?.metadata.data.artistImage
-              ? data?.metadata.data.artistImage
-              : data?.metadata.thumbnail
-          }
+          src={data.data.artistImage ? data.data.artistImage : data.media}
           sx={{ width: "48px", height: "48px", marginRight: "15px" }}
         />
         <Box>
           <Typography variant="h6" color="#0F0E36">
-            {data?.metadata.name}
+            {data.name}
           </Typography>
           <Typography variant="body1" color="#777684">
-            {`by ${data?.metadata.data.artist}`}
+            {`by ${data.data.artist ? data.data.artist : data.name}`}
           </Typography>
         </Box>
       </Box>
@@ -73,20 +68,22 @@ const CollectionDetailCard = (props) => {
           color="#777684"
           sx={{ marginBottom: "20px" }}
         >
-          {data?.metadata.description}
+          {data.description}
         </Typography>
         <CustomButton
-          onClick={() => navigate(`/collections/${data.metadata.name}`)}
+          onClick={() => {
+            listNftHandler(data.nftId);
+          }}
           dark
         >
-          View Collection
+          List For Sale
         </CustomButton>
       </Box>
       {/* <Typography variant="body1" className={markClasses}>
-        {data?.data.category}
+        {data.type}
       </Typography> */}
     </Box>
   );
 };
 
-export default CollectionDetailCard;
+export default AdminCollectionDetailCard;

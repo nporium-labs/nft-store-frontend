@@ -21,14 +21,14 @@ import Payment from "views/Payment";
 import { AppContext } from "context/AppContextProvider";
 
 import styles from "assets/jss/views/accountStyles";
+import { logout } from "services";
 
 const useStyles = makeStyles(styles);
 
 const Account = () => {
   const classes = useStyles();
   const navigate = useNavigate();
-
-  const { handleLogout, logged } = useContext(AppContext);
+  const { handleLogout, logged, role } = useContext(AppContext);
 
   const [tab, setTab] = useState("profile");
   const [userEmail, setUserEmail] = useState();
@@ -43,14 +43,29 @@ const Account = () => {
     }
   }, [logged]);
 
-  const logoutHadler = () => {
-    setLoading(true);
+  const logoutHadler = async () => {
     window.localStorage.clear();
+    let sessionId = localStorage.getItem("sid");
     googleLogout();
-    handleLogout();
-    setLoading(false);
-    notify("you are logout successfully");
-    navigate("/login");
+    const result = await logout(sessionId);
+    if (result && result.isError === false) {
+      handleLogout();
+      notify(result.message);
+      navigate("/login");
+    } else if (result && result.isError === true) {
+      notify(result.message);
+    } else {
+      notify("There is an error in logout");
+    }
+    // handleLogout();
+    // setLoading(false);
+    // notify("you are logout successfully");
+    // navigate("/login");
+  };
+
+  const adminButton = (event) => {
+    event.preventDefault();
+    navigate("/admin/dashborad");
   };
   const notify = (message) => toast(message);
 
@@ -123,7 +138,15 @@ const Account = () => {
             >
               Earnings
             </Button>
-
+            {role == process.env.REACT_APP_ADMIN && (
+              <Button
+                variant="text"
+                className={clsx({ [classes.active]: tab === "AdminPortal" })}
+                onClick={adminButton}
+              >
+                Admin Portal
+              </Button>
+            )}
             <Button variant="text" onClick={logoutHadler}>
               Log out
             </Button>

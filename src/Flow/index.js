@@ -265,6 +265,34 @@ export const unListNFTsForSale = async (tokenId) => {
   return response;
 };
 
+export const updatePriceOfSaleNFT = async (tokenId, newPrice) => {
+  const transactionId = await fcl
+    .send([
+      fcl.transaction`
+      import NFTMarketplace from ${process.env.REACT_APP_MARKETPLACECONTRACT}
+
+      transaction(){
+        let NFTMarketplaceSaleCollectionRef: &NFTMarketplace.SaleCollection
+    
+        prepare(account:AuthAccount){
+            self.NFTMarketplaceSaleCollectionRef = account.borrow<&NFTMarketplace.SaleCollection>(from: NFTMarketplace.SaleCollectionStoragePath)
+                                                    ??panic("Could not borrow from sale in storage")
+            }
+        execute{
+            self.NFTMarketplaceSaleCollectionRef.changePrice(tokenID: ${tokenId}, newPrice: UFix64(${newPrice}))
+        }
+    }
+    `,
+      fcl.proposer(fcl.authz),
+      fcl.authorizations([fcl.authz]),
+      fcl.payer(fcl.authz),
+      fcl.limit(9999),
+    ])
+    .then(fcl.decode);
+  let response = await fcl.tx(transactionId).onceSealed();
+  return response;
+};
+
 export const createEmptyNFTCollection = async () => {
   const transactionId = await fcl
     .send([
@@ -346,7 +374,7 @@ export const getResolverView = async (id, account) => {
     .send([
       fcl.script`
     import NPMContract from ${process.env.REACT_APP_NPMCONTRACT}
-    import MetadataViews from ${process.env.REACT_APP_MAATADATAVIEWS}
+    import MetadataViews from ${process.env.REACT_APP_MATADATAVIEWS}
     
     pub fun main(id: UInt64, account: Address) : &AnyResource{MetadataViews.Resolver} {
         let account1 = getAccount(${account})
@@ -380,15 +408,46 @@ export const getUserNFTs = async (account) => {
         for nftId in nftIds {
             let nftData = acct1Capability.borrowNFTNPMContractContract(id: nftId)
             var nftMetaData : {String:AnyStruct} = {}
-            
+            nftMetaData["nftId"] =nftId;
             nftMetaData["name"] =nftData!.name;
             nftMetaData["description"] = nftData!.description;
             nftMetaData["media"] = nftData!.thumbnail;
             nftMetaData["data"] = nftData!.data;
             nftMetaData["creator"] = nftData!.author;
-            nftMetaData["ownerAdress"] = account;
+            nftMetaData["ownerAdress"] = ${account};
             dict.insert(key: nftId,nftMetaData)
         }
+        return dict
+    }`,
+    ])
+    .then(fcl.decode);
+  return response;
+};
+
+export const getUserNFTById = async (account, nftId) => {
+  const response = await fcl
+    .send([
+      fcl.script`
+    import NPMContract from ${process.env.REACT_APP_NPMCONTRACT}
+
+    pub fun main() : {UInt64: AnyStruct}{
+        let account1 = getAccount(${account})
+        let acct1Capability =  account1.getCapability(NPMContract.CollectionPublicPath)
+                                .borrow<&{NPMContract.NPMContractCollectionPublic}>()
+                                ??panic("could not borrow receiver reference ")
+
+        var dict : {UInt64: AnyStruct} = {}
+        let nftData = acct1Capability.borrowNFTNPMContractContract(id: ${nftId})
+        var nftMetaData : {String:AnyStruct} = {}
+        nftMetaData["nftId"] =${nftId}
+        nftMetaData["name"] =nftData!.name
+        nftMetaData["description"] = nftData!.description
+        nftMetaData["media"] = nftData!.thumbnail
+        nftMetaData["data"] = nftData!.data
+        nftMetaData["creator"] = nftData!.author
+        nftMetaData["ownerAdress"] = ${account}
+        dict.insert(key: ${nftId}, nftMetaData)
+        
         return dict
     }`,
     ])

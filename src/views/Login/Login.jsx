@@ -83,11 +83,12 @@ const Login = () => {
         setLoading(true);
         const result = await login(values.email, values.password);
         if (result.loginResult && result.loginResult.isError === false) {
-          localStorage.setItem("token", result.loginResult.token);
           localStorage.setItem("name", result.loginResult.userName);
           localStorage.setItem("email", result.loginResult.email);
           localStorage.setItem("google", false);
-          handleLogin(result.loginResult.userName);
+          localStorage.setItem("role", result.loginResult.role);
+
+          handleLogin(result.loginResult.userName, result.loginResult.role);
           notify(result.loginResult.message);
           setLoading(false);
           navigate("/");
@@ -127,12 +128,13 @@ const Login = () => {
         userInfo.locale
       );
       if (result && result.loginResult.isError === false) {
-        localStorage.setItem("token", result.loginResult.token);
         localStorage.setItem("name", result.loginResult.userName);
         localStorage.setItem("email", result.loginResult.email);
         localStorage.setItem("google", true);
         localStorage.setItem("checked", false);
-        handleLogin(result.loginResult.userName);
+        localStorage.setItem("role", result.loginResult.role);
+
+        handleLogin(result.loginResult.userName, result.loginResult.role);
         notify(result.loginResult.message);
         navigate("/");
         setLoading(false);

@@ -66,6 +66,8 @@ export const loginWithGoogle = async (
       },
     }
   ).then((response) => {
+    localStorage.setItem("sid", response.headers.get("Session-Id"));
+
     return response.json();
   });
   return result;
@@ -81,6 +83,173 @@ export const login = async (email, password) => {
     body: JSON.stringify(loginData),
     headers: {
       "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  }).then((response) => {
+    localStorage.setItem("sid", response.headers.get("Session-Id"));
+    return response.json();
+  });
+
+  return result;
+};
+
+export const logout = async (sessionId) => {
+  let result = fetch("https://nftmarketbackendapp.herokuapp.com/api/logout", {
+    method: "POST",
+    headers: {
+      sessionId: `${sessionId}`,
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  }).then((response) => {
+    return response.json();
+  });
+
+  return result;
+};
+
+export const updateRoyalityCut = async (amount, sessionId) => {
+  let updateRoyaityData = {
+    value: amount,
+  };
+  let result = fetch(
+    "https://nftmarketbackendappupdateRoyaityData.herokuapp.com/api/updateRoyalityCut",
+    {
+      method: "POST",
+      body: JSON.stringify(updateRoyaityData),
+      headers: {
+        sessionId: `${sessionId}`,
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    }
+  ).then((response) => {
+    return response.json();
+  });
+
+  return result;
+};
+
+export const updateMarketingCut = async (amount, sessionId) => {
+  let updateMarketingCutData = {
+    value: amount,
+  };
+  let result = fetch(
+    "https://nftmarketbackendapp.herokuapp.com/api/updateMarketingCut",
+    {
+      method: "POST",
+      body: JSON.stringify(updateMarketingCutData),
+      headers: {
+        sessionId: `${sessionId}`,
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    }
+  ).then((response) => {
+    return response.json();
+  });
+
+  return result;
+};
+
+export const updatelistNFTPrice = async (amount, nftId, sessionId) => {
+  let updatelistNFTPriceData = {
+    tokenId: nftId,
+    price: amount,
+  };
+  let result = fetch(
+    "https://nftmarketbackendapp.herokuapp.com/api/updatelistNFTPrice",
+    {
+      method: "POST",
+      body: JSON.stringify(updatelistNFTPriceData),
+      headers: {
+        sessionId: `${sessionId}`,
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    }
+  ).then((response) => {
+    return response.json();
+  });
+
+  return result;
+};
+
+export const unlistNFTFromSale = async (nftId, sessionId) => {
+  let unlistNFTFromSaleData = {
+    tokenId: nftId,
+  };
+  let result = fetch(
+    "https://nftmarketbackendapp.herokuapp.com/api/unlistNFTFromSale",
+    {
+      method: "POST",
+      body: JSON.stringify(unlistNFTFromSaleData),
+      headers: {
+        sessionId: `${sessionId}`,
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    }
+  ).then((response) => {
+    return response.json();
+  });
+
+  return result;
+};
+
+export const listNFTForSale = async (amount, nftId, sessionId) => {
+  let listNFTForSaleData = {
+    tokenId: nftId,
+    price: amount,
+  };
+  let result = fetch(
+    "https://nftmarketbackendapp.herokuapp.com/api/listNFTForSale",
+    {
+      method: "POST",
+      body: JSON.stringify(listNFTForSaleData),
+      headers: {
+        sessionId: `${sessionId}`,
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    }
+  ).then((response) => {
+    return response.json();
+  });
+
+  return result;
+};
+
+export const mintNFT = async (
+  name,
+  description,
+  artist,
+  category,
+  avatar,
+  media,
+  artistCollectionImg,
+  sessionId
+) => {
+  let mintData = new FormData();
+  mintData.append("name", name);
+  mintData.append("description", description);
+  mintData.append("artist", artist);
+  mintData.append("category", category);
+  mintData.append("avatar", avatar);
+  mintData.append("artistCollectionAvatar", artistCollectionImg);
+  mintData.append("media", media);
+  let result = fetch("https://nftmarketbackendapp.herokuapp.com/api/mintNFT", {
+    method: "POST",
+    body: mintData,
+    headers: {
+      sessionId: `${sessionId}`,
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers": "Content-Type",
     },
@@ -138,6 +307,16 @@ export const updateNewPassword = async (password, tokenParam) => {
 export const getAllUsers = async () => {
   const result = await fetch(
     "https://nftmarketbackendapp.herokuapp.com/api/getUserData"
+  ).then((response) => {
+    return response.json();
+  });
+
+  return result;
+};
+
+export const checkUserSession = async () => {
+  const result = await fetch(
+    "https://nftmarketbackendapp.herokuapp.com/api/checkUserSession"
   ).then((response) => {
     return response.json();
   });

@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { gapi } from "gapi-script";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 import Layout from "components/Layout";
 
@@ -27,9 +29,25 @@ import AppContextProvider from "context/AppContextProvider";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Forgot from "views/Forgot";
 import Terms from "views/Terms";
+import AdminDashboard from "views/AdminDashboard";
+import ListNftForSale from "views/ListNftForSale";
+import UpdatePriceOfNFT from "views/UpdatePriceOfNFT";
+import { AppContext } from "context/AppContextProvider";
+import { checkUserSession } from "services";
 
 const theme = createTheme({});
 function App() {
+  useEffect(() => {
+    const checkSession = async () => {
+      const result = await checkUserSession();
+      if (result && result.isError === true) {
+        window.localStorage.clear();
+        notify(result.message);
+      }
+    };
+    checkSession();
+  }, []);
+  const notify = (message) => toast(message);
   return (
     <ThemeProvider theme={theme}>
       <GoogleOAuthProvider clientId={process.env.REACT_APP_MY_CLIENT}>
@@ -50,6 +68,14 @@ function App() {
                   path="/collections/:category"
                   element={<CollectionCategory />}
                 />
+                <Route
+                  path="/admin/dashborad/listNftForSale/:id"
+                  element={<ListNftForSale />}
+                />
+                <Route
+                  path="/admin/dashborad/updatePriceOfNFT/:id"
+                  element={<UpdatePriceOfNFT />}
+                />
                 <Route path="/collections" element={<Collections />} />
                 <Route path="/creators/:id" element={<CreatorDetail />} />
                 <Route path="/creators" element={<Creators />} />
@@ -63,6 +89,7 @@ function App() {
                 <Route path="/forgot" element={<Forgot />} />
                 <Route path="/forgot/:id" element={<UpdateUserPasword />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/admin/dashborad" element={<AdminDashboard />} />
                 <Route path="/" element={<Home />} />
               </Routes>
             </Layout>
